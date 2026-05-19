@@ -1,1 +1,224 @@
 
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+  - name: env
+    type: string
+    default: Dev
+    values:
+      - Dev
+      - ITG
+      - Prod
+
+  - name: action
+    type: string
+    default: Plan
+    values:
+      - Plan
+      - Apply
+      - Destroy
+
+variables:
+
+  # Terraform Version
+  terraformVersion: '1.6.6'
+
+  # Azure Service Connection
+  azureServiceConnection: 'Azure-Service-Connection'
+
+  # Backend Configuration
+  backendResourceGroupName: 'tfstate-rg'
+  backendStorageAccountName: 'isactfstateprod'
+  backendContainerName: 'tfstate'
+
+  # Environment-Based tfvars
+  ${{ if eq(parameters.env, 'Dev') }}:
+    tfvarsFile: 'environments/dev.tfvars'
+    tfStateFile: 'dev.tfstate'
+
+  ${{ if eq(parameters.env, 'ITG') }}:
+    tfvarsFile: 'environments/itg.tfvars'
+    tfStateFile: 'itg.tfstate'
+
+  ${{ if eq(parameters.env, 'Prod') }}:
+    tfvarsFile: 'environments/prod.tfvars'
+    tfStateFile: 'prod.tfstate'
+
+stages:
+
+# ============================================================
+# TERRAFORM PLAN
+# ============================================================
+
+- stage: TerraformPlan
+  displayName: 'Terraform Plan'
+  condition: or(
+              eq('${{ parameters.action }}', 'Plan'),
+              eq('${{ parameters.action }}', 'Apply')
+            )
+
+  jobs:
+    - job: Plan
+      displayName: 'Terraform Plan'
+
+      steps:
+
+        # Checkout Repo
+        - checkout: self
+
+        # Install Terraform
+        - task: TerraformInstaller@1
+          displayName: 'Install Terraform'
+          inputs:
+            terraformVersion: $(terraformVersion)
+
+        # Terraform Init
+        - task: AzureCLI@2
+          displayName: 'Terraform Init'
+          inputs:
+            azureSubscription: $(azureServiceConnection)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+
+              terraform init \
+                -backend-config="resource_group_name=$(backendResourceGroupName)" \
+                -backend-config="storage_account_name=$(backendStorageAccountName)" \
+                -backend-config="container_name=$(backendContainerName)" \
+                -backend-config="key=$(tfStateFile)"
+
+        # Terraform Validate
+        - task: AzureCLI@2
+          displayName: 'Terraform Validate'
+          inputs:
+            azureSubscription: $(azureServiceConnection)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+
+              terraform validate
+
+        # Terraform Plan
+        - task: AzureCLI@2
+          displayName: 'Terraform Plan'
+          inputs:
+            azureSubscription: $(azureServiceConnection)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+
+              terraform plan \
+                -var-file="$(tfvarsFile)" \
+                -out=tfplan
+
+# ============================================================
+# TERRAFORM APPLY
+# ============================================================
+
+- stage: TerraformApply
+  displayName: 'Terraform Apply'
+  dependsOn: TerraformPlan
+  condition: eq('${{ parameters.action }}', 'Apply')
+
+  jobs:
+    - deployment: Apply
+      displayName: 'Terraform Apply'
+      environment: '${{ parameters.env }}'
+
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - checkout: self
+
+              # Install Terraform
+              - task: TerraformInstaller@1
+                displayName: 'Install Terraform'
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              # Terraform Init
+              - task: AzureCLI@2
+                displayName: 'Terraform Init'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+
+                    terraform init \
+                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
+                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
+                      -backend-config="container_name=$(backendContainerName)" \
+                      -backend-config="key=$(tfStateFile)"
+
+              # Terraform Apply
+              - task: AzureCLI@2
+                displayName: 'Terraform Apply'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+
+                    terraform apply \
+                      -var-file="$(tfvarsFile)" \
+                      -auto-approve
+
+# ============================================================
+# TERRAFORM DESTROY
+# ============================================================
+
+- stage: TerraformDestroy
+  displayName: 'Terraform Destroy'
+  condition: eq('${{ parameters.action }}', 'Destroy')
+
+  jobs:
+    - deployment: Destroy
+      displayName: 'Terraform Destroy'
+      environment: '${{ parameters.env }}'
+
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - checkout: self
+
+              # Install Terraform
+              - task: TerraformInstaller@1
+                displayName: 'Install Terraform'
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              # Terraform Init
+              - task: AzureCLI@2
+                displayName: 'Terraform Init'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+
+                    terraform init \
+                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
+                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
+                      -backend-config="container_name=$(backendContainerName)" \
+                      -backend-config="key=$(tfStateFile)"
+
+              # Terraform Destroy
+              - task: AzureCLI@2
+                displayName: 'Terraform Destroy'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+
+                    terraform destroy \
+                      -var-file="$(tfvarsFile)" \
+                      -auto-approve
