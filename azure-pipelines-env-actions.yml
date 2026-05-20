@@ -55,12 +55,12 @@ stages:
 
 - stage: TerraformPlan
   displayName: 'Terraform Plan'
-  condition: eq('${{ parameters.action }}', 'Plan')
+  # condition: eq('${{ parameters.action }}', 'Plan')
 
-  # condition: or(
-  #             eq('${{ parameters.action }}', 'Plan'),
-  #             eq('${{ parameters.action }}', 'Apply')
-  #           )
+  condition: or(
+              eq('${{ parameters.action }}', 'Plan'),
+              eq('${{ parameters.action }}', 'Apply')
+            )
 
   jobs:
     - job: Plan
