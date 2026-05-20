@@ -30,9 +30,9 @@ variables:
   azureServiceConnection: 'dev-sub'
 
   # Backend Configuration
-  backendResourceGroupName: 'tfstate-rg'
-  backendStorageAccountName: 'isactfstateprod'
-  backendContainerName: 'tfstate'
+  backendResourceGroupName: '$(backendResourceGroupName)'
+  backendStorageAccountName: '$(backendStorageAccountName)'
+  backendContainerName: '$(backendContainerName)'
 
   # Environment-Based tfvars
   ${{ if eq(parameters.env, 'Dev') }}:
