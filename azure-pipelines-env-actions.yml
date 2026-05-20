@@ -24,7 +24,7 @@ parameters:
 variables:
 
   # Terraform Version
-  terraformVersion: '$(terraformVersion)'
+  terraformVersion: '1.6.6'
 
   # Azure Service Connection
   azureServiceConnection: 'dev-sub'
