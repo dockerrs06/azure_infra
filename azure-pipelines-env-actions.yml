@@ -170,6 +170,12 @@ stages:
                       -backend-config="container_name=$(backendContainerName)" \
                       -backend-config="key=$(tfStateFile)"
 
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)            
+
               # Terraform Apply
               - task: AzureCLI@2
                 displayName: 'Terraform Apply'
@@ -182,6 +188,12 @@ stages:
                     terraform apply \
                       -var-file="$(tfvarsFile)" \
                       -auto-approve
+
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)             
 
 # ============================================================
 # TERRAFORM DESTROY
@@ -224,6 +236,12 @@ stages:
                       -backend-config="container_name=$(backendContainerName)" \
                       -backend-config="key=$(tfStateFile)"
 
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)          
+
               # Terraform Destroy
               - task: AzureCLI@2
                 displayName: 'Terraform Destroy'
@@ -236,3 +254,9 @@ stages:
                     terraform destroy \
                       -var-file="$(tfvarsFile)" \
                       -auto-approve
+
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)            
