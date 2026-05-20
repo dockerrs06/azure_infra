@@ -134,7 +134,7 @@ stages:
 
 - stage: TerraformApply
   displayName: 'Terraform Apply'
-  dependsOn: TerraformPlan
+  # dependsOn: TerraformPlan
   condition: eq('${{ parameters.action }}', 'Apply')
 
   jobs:
