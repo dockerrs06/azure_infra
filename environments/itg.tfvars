@@ -1,0 +1,5 @@
+env            = "itg"
+location       = "Central India"
+vm_name        = "vm"
+admin_username = "azureadmin"
+admin_password = "P@ssword12345!"
