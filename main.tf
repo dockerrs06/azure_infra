@@ -30,13 +30,18 @@ resource "azurerm_storage_account" "sa" {
 # ----------------------------
 # VM MODULE
 # ----------------------------
+
 module "windows_vm" {
   source = "./modules/virtualmachine"
+
+  for_each = toset(var.vm_list)
 
   env                 = var.env
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
-  vm_name             = var.vm_name
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
+
+  vm_name        = each.value
+  admin_username = var.admin_username
+  admin_password = var.admin_password
 }
+
