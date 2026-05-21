@@ -1,4 +1,4 @@
-env            = "itg"
+env            = "prod"
 location       = "Central India"
 vm_name        = "vm"
 admin_username = "azureadmin"
