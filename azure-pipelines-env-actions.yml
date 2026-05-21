@@ -1,161 +1,413 @@
 
-trigger: none
+# trigger: none
 
-pool:
-  vmImage: 'ubuntu-latest'
+# pool:
+#   vmImage: 'ubuntu-latest'
 
-parameters:
-  - name: env
-    type: string
-    default: Dev
-    values:
-      - Dev
-      - ITG
-      - Prod
+# parameters:
+#   - name: env
+#     type: string
+#     default: Dev
+#     values:
+#       - Dev
+#       - ITG
+#       - Prod
 
-  - name: action
-    type: string
-    default: Plan
-    values:
-      - Plan
-      - Apply
-      - Destroy
+#   - name: action
+#     type: string
+#     default: Plan
+#     values:
+#       - Plan
+#       - Apply
+#       - Destroy
 
-variables:
+# variables:
 
-  # Terraform Version
-  terraformVersion: '1.6.6'
+#   # Terraform Version
+#   terraformVersion: '1.6.6'
 
-  # Azure Service Connection
-  azureServiceConnection: 'dev-sub'
+#   # Azure Service Connection
+#   azureServiceConnection: 'dev-sub'
 
-  # Backend Configuration
-  backendResourceGroupName: 'isac-dev-rg'
-  backendStorageAccountName: 'isactfstatedev'
-  backendContainerName: 'tfstate'
+#   # Backend Configuration
+#   backendResourceGroupName: 'isac-dev-rg'
+#   backendStorageAccountName: 'isactfstatedev'
+#   backendContainerName: 'tfstate'
 
-  # Environment-Based tfvars
-  ${{ if eq(parameters.env, 'Dev') }}:
-    tfvarsFile: 'environments/dev.tfvars'
-    tfStateFile: 'dev.tfstate'
+#   # Environment-Based tfvars
+#   ${{ if eq(parameters.env, 'Dev') }}:
+#     tfvarsFile: 'environments/dev.tfvars'
+#     tfStateFile: 'dev.tfstate'
 
-  ${{ if eq(parameters.env, 'ITG') }}:
-    tfvarsFile: 'environments/itg.tfvars'
-    tfStateFile: 'itg.tfstate'
+#   ${{ if eq(parameters.env, 'ITG') }}:
+#     tfvarsFile: 'environments/itg.tfvars'
+#     tfStateFile: 'itg.tfstate'
 
-  ${{ if eq(parameters.env, 'Prod') }}:
-    tfvarsFile: 'environments/prod.tfvars'
-    tfStateFile: 'prod.tfstate'
+#   ${{ if eq(parameters.env, 'Prod') }}:
+#     tfvarsFile: 'environments/prod.tfvars'
+#     tfStateFile: 'prod.tfstate'
 
-stages:
+# stages:
 
-# ============================================================
-# TERRAFORM PLAN
-# ============================================================
+# # ============================================================
+# # TERRAFORM PLAN
+# # ============================================================
 
-- stage: TerraformPlan
-  displayName: 'Terraform Plan'
-  condition: eq('${{ parameters.action }}', 'Plan')
+# - stage: TerraformPlan
+#   displayName: 'Terraform Plan'
+#   condition: eq('${{ parameters.action }}', 'Plan')
 
-  # condition: or(
-  #             eq('${{ parameters.action }}', 'Plan'),
-  #             eq('${{ parameters.action }}', 'Apply')
-  #           )
+#   # condition: or(
+#   #             eq('${{ parameters.action }}', 'Plan'),
+#   #             eq('${{ parameters.action }}', 'Apply')
+#   #           )
+
+#   jobs:
+#     - job: Plan
+#       displayName: 'Terraform Plan'
+
+#       steps:
+
+#         # Checkout Repo
+#         - checkout: self
+
+#         # Install Terraform
+#         - task: TerraformInstaller@1
+#           displayName: 'Install Terraform'
+#           inputs:
+#             terraformVersion: $(terraformVersion)
+
+#         # Terraform Init
+#         - task: AzureCLI@2
+#           displayName: 'Terraform Init'
+#           inputs:
+#             azureSubscription: $(azureServiceConnection)
+#             scriptType: bash
+#             scriptLocation: inlineScript
+#             inlineScript: |
+
+#               terraform init \
+#                 -backend-config="resource_group_name=$(backendResourceGroupName)" \
+#                 -backend-config="storage_account_name=$(backendStorageAccountName)" \
+#                 -backend-config="container_name=$(backendContainerName)" \
+#                 -backend-config="key=$(tfStateFile)"
+
+#           env:
+#             ARM_CLIENT_ID: $(servicePrincipalId)
+#             ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#             ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#             ARM_TENANT_ID: $(tenantId)      
+
+#         # Terraform Validate
+#         - task: AzureCLI@2
+#           displayName: 'Terraform Validate'
+#           inputs:
+#             azureSubscription: $(azureServiceConnection)
+#             scriptType: bash
+#             scriptLocation: inlineScript
+#             inlineScript: |
+
+#               terraform validate
+
+#         # Terraform Plan
+#         - task: AzureCLI@2
+#           displayName: 'Terraform Plan'
+#           inputs:
+#             azureSubscription: $(azureServiceConnection)
+#             scriptType: bash
+#             scriptLocation: inlineScript
+#             inlineScript: |
+
+#               terraform plan \
+#                 -var-file="$(tfvarsFile)" \
+#                 -out=tfplan
+
+#           env:
+#             ARM_CLIENT_ID: $(servicePrincipalId)
+#             ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#             ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#             ARM_TENANT_ID: $(tenantId)        
+
+# # ============================================================
+# # TERRAFORM APPLY
+# # ============================================================
+
+# - stage: TerraformApply
+#   displayName: 'Terraform Apply'
+#   # dependsOn: TerraformPlan
+#   condition: eq('${{ parameters.action }}', 'Apply')
+
+#   jobs:
+#     - deployment: Apply
+#       displayName: 'Terraform Apply'
+#       environment: '${{ parameters.env }}'
+
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+
+#               - checkout: self
+
+#               # Install Terraform
+#               - task: TerraformInstaller@1
+#                 displayName: 'Install Terraform'
+#                 inputs:
+#                   terraformVersion: $(terraformVersion)
+
+#               # Terraform Init
+#               - task: AzureCLI@2
+#                 displayName: 'Terraform Init'
+#                 inputs:
+#                   azureSubscription: $(azureServiceConnection)
+#                   scriptType: bash
+#                   scriptLocation: inlineScript
+#                   inlineScript: |
+
+#                     terraform init \
+#                       -backend-config="resource_group_name=$(backendResourceGroupName)" \
+#                       -backend-config="storage_account_name=$(backendStorageAccountName)" \
+#                       -backend-config="container_name=$(backendContainerName)" \
+#                       -backend-config="key=$(tfStateFile)"
+
+#                 env:
+#                   ARM_CLIENT_ID: $(servicePrincipalId)
+#                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#                   ARM_TENANT_ID: $(tenantId)            
+
+#               # Terraform Apply
+#               - task: AzureCLI@2
+#                 displayName: 'Terraform Apply'
+#                 inputs:
+#                   azureSubscription: $(azureServiceConnection)
+#                   scriptType: bash
+#                   scriptLocation: inlineScript
+#                   inlineScript: |
+
+#                     terraform apply \
+#                       -var-file="$(tfvarsFile)" \
+#                       -auto-approve
+
+#                 env:
+#                   ARM_CLIENT_ID: $(servicePrincipalId)
+#                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#                   ARM_TENANT_ID: $(tenantId)             
+
+# # ============================================================
+# # TERRAFORM DESTROY
+# # ============================================================
+
+# - stage: TerraformDestroy
+#   displayName: 'Terraform Destroy'
+#   condition: eq('${{ parameters.action }}', 'Destroy')
+
+#   jobs:
+#     - deployment: Destroy
+#       displayName: 'Terraform Destroy'
+#       environment: '${{ parameters.env }}'
+
+#       strategy:
+#         runOnce:
+#           deploy:
+#             steps:
+
+#               - checkout: self
+
+#               # Install Terraform
+#               - task: TerraformInstaller@1
+#                 displayName: 'Install Terraform'
+#                 inputs:
+#                   terraformVersion: $(terraformVersion)
+
+#               # Terraform Init
+#               - task: AzureCLI@2
+#                 displayName: 'Terraform Init'
+#                 inputs:
+#                   azureSubscription: $(azureServiceConnection)
+#                   scriptType: bash
+#                   scriptLocation: inlineScript
+#                   inlineScript: |
+
+#                     terraform init \
+#                       -backend-config="resource_group_name=$(backendResourceGroupName)" \
+#                       -backend-config="storage_account_name=$(backendStorageAccountName)" \
+#                       -backend-config="container_name=$(backendContainerName)" \
+#                       -backend-config="key=$(tfStateFile)"
+
+#                 env:
+#                   ARM_CLIENT_ID: $(servicePrincipalId)
+#                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#                   ARM_TENANT_ID: $(tenantId)          
+
+#               # Terraform Destroy
+#               - task: AzureCLI@2
+#                 displayName: 'Terraform Destroy'
+#                 inputs:
+#                   azureSubscription: $(azureServiceConnection)
+#                   scriptType: bash
+#                   scriptLocation: inlineScript
+#                   inlineScript: |
+
+#                     terraform destroy \
+#                       -var-file="$(tfvarsFile)" \
+#                       -auto-approve
+
+#                 env:
+#                   ARM_CLIENT_ID: $(servicePrincipalId)
+#                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
+#                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
+#                   ARM_TENANT_ID: $(tenantId)            
+
+
+
+  trigger: none
+
+  parameters:
+    - name: env
+      type: string
+      default: Dev
+      values:
+        - Dev
+        - ITG
+        - Prod
+    - name: action
+      type: string
+      default: Plan
+      values:
+        - Plan
+        - Apply
+        - Destroy
+
+  variables:
+    
+     
+    # Terraform Version
+    terraformVersion: 'latest'
+
+    # Azure Service Connection
+    azureServiceConnection: 'dev-sub'
+
+    # Backend Configuration
+    backendResourceGroupName: 'isac-dev-rg'
+    backendStorageAccountName: 'isactfstatedev'
+    backendContainerName: 'tfstate'
+  
 
   jobs:
-    - job: Plan
-      displayName: 'Terraform Plan'
-
-      steps:
-
-        # Checkout Repo
-        - checkout: self
-
-        # Install Terraform
-        - task: TerraformInstaller@1
-          displayName: 'Install Terraform'
-          inputs:
-            terraformVersion: $(terraformVersion)
-
-        # Terraform Init
-        - task: AzureCLI@2
-          displayName: 'Terraform Init'
-          inputs:
-            azureSubscription: $(azureServiceConnection)
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-
-              terraform init \
-                -backend-config="resource_group_name=$(backendResourceGroupName)" \
-                -backend-config="storage_account_name=$(backendStorageAccountName)" \
-                -backend-config="container_name=$(backendContainerName)" \
-                -backend-config="key=$(tfStateFile)"
-
-          env:
-            ARM_CLIENT_ID: $(servicePrincipalId)
-            ARM_CLIENT_SECRET: $(servicePrincipalKey)
-            ARM_SUBSCRIPTION_ID: $(subscriptionId)
-            ARM_TENANT_ID: $(tenantId)      
-
-        # Terraform Validate
-        - task: AzureCLI@2
-          displayName: 'Terraform Validate'
-          inputs:
-            azureSubscription: $(azureServiceConnection)
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-
-              terraform validate
-
-        # Terraform Plan
-        - task: AzureCLI@2
-          displayName: 'Terraform Plan'
-          inputs:
-            azureSubscription: $(azureServiceConnection)
-            scriptType: bash
-            scriptLocation: inlineScript
-            inlineScript: |
-
-              terraform plan \
-                -var-file="$(tfvarsFile)" \
-                -out=tfplan
-
-          env:
-            ARM_CLIENT_ID: $(servicePrincipalId)
-            ARM_CLIENT_SECRET: $(servicePrincipalKey)
-            ARM_SUBSCRIPTION_ID: $(subscriptionId)
-            ARM_TENANT_ID: $(tenantId)        
-
-# ============================================================
-# TERRAFORM APPLY
-# ============================================================
-
-- stage: TerraformApply
-  displayName: 'Terraform Apply'
-  # dependsOn: TerraformPlan
-  condition: eq('${{ parameters.action }}', 'Apply')
-
-  jobs:
-    - deployment: Apply
-      displayName: 'Terraform Apply'
+  # ================================
+  # PLAN DEPLOYMENT JOB WITH APPROVAL
+  # ================================
+  - ${{ if eq(parameters.action, 'Plan') }}:
+    - deployment: 'TerraformPlan_${{ parameters.env }}'
+      displayName: 'Terraform Plan - ${{ parameters.env }} Environment'
+      pool:
+        vmImage: ubuntu-latest
       environment: '${{ parameters.env }}'
+
+      variables:
+        ${{ if eq(parameters.env, 'Dev') }}:
+          tfvarsFile: 'environments/dev.tfvars'
+          tfStateFile: 'dev.tfstate'
+        ${{ if eq(parameters.env, 'ITG') }}:
+          tfvarsFile: 'environments/itg.tfvars'
+          tfStateFile: 'itg.tfstate'
+        ${{ if eq(parameters.env, 'Prod') }}:
+          tfvarsFile: 'environments/prod.tfvars'
+          tfStateFile: 'prod.tfstate'
 
       strategy:
         runOnce:
           deploy:
             steps:
-
               - checkout: self
+                displayName: 'Checkout Source Code'
 
-              # Install Terraform
               - task: TerraformInstaller@1
-                displayName: 'Install Terraform'
+                displayName: 'Terraform Installer'
                 inputs:
-                  terraformVersion: $(terraformVersion)
+                  terraformVersion: 'latest'
 
-              # Terraform Init
+              - task: AzureCLI@2   # ✅ FIXED
+                displayName: 'Terraform Init'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    terraform init \
+                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
+                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
+                      -backend-config="container_name=$(backendContainerName)" \
+                      -backend-config="key=$(tfStateFile)"
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)
+
+              - task: AzureCLI@2
+                displayName: 'Terraform Validate'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    terraform validate
+
+              - task: AzureCLI@2
+                displayName: 'Terraform Plan'
+                inputs:
+                  azureSubscription: $(azureServiceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    terraform plan \
+                      -var-file="$(tfvarsFile)" \
+                      -out=tfplan
+                env:
+                  ARM_CLIENT_ID: $(servicePrincipalId)
+                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
+                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
+                  ARM_TENANT_ID: $(tenantId)
+  
+
+  # ================================
+  # APPLY DEPLOYMENT JOB WITH APPROVAL
+  # ================================
+  - ${{ if eq(parameters.action, 'Apply') }}:
+    - deployment: 'TerraformApply_${{ parameters.env }}'
+      displayName: 'Terraform Apply - ${{ parameters.env }} Environment'
+      pool:
+        name: ubuntu-latest
+      environment: '${{ parameters.env }}'
+      variables:
+
+          ${{ if eq(parameters.env, 'Dev') }}:
+              tfvarsFile: 'environments/dev.tfvars'
+              tfStateFile: 'dev.tfstate'
+
+          ${{ if eq(parameters.env, 'ITG') }}:
+            tfvarsFile: 'environments/itg.tfvars'
+            tfStateFile: 'itg.tfstate'
+
+      ${{ if eq(parameters.env, 'Prod') }}:
+        tfvarsFile: 'environments/prod.tfvars'
+        tfStateFile: 'prod.tfstate'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+                displayName: 'Checkout Source Code'
+
+              - task: TerraformInstaller@1
+                displayName: 'Terraform Installer'
+                inputs:
+                  terraformVersion: 'latest'
+
               - task: AzureCLI@2
                 displayName: 'Terraform Init'
                 inputs:
@@ -174,52 +426,42 @@ stages:
                   ARM_CLIENT_ID: $(servicePrincipalId)
                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
-                  ARM_TENANT_ID: $(tenantId)            
+                  ARM_TENANT_ID: $(tenantId)
 
-              # Terraform Apply
-              - task: AzureCLI@2
-                displayName: 'Terraform Apply'
-                inputs:
-                  azureSubscription: $(azureServiceConnection)
-                  scriptType: bash
-                  scriptLocation: inlineScript
-                  inlineScript: |
+              
 
-                    terraform apply \
-                      -var-file="$(tfvarsFile)" \
-                      -auto-approve
-
-                env:
-                  ARM_CLIENT_ID: $(servicePrincipalId)
-                  ARM_CLIENT_SECRET: $(servicePrincipalKey)
-                  ARM_SUBSCRIPTION_ID: $(subscriptionId)
-                  ARM_TENANT_ID: $(tenantId)             
-
-# ============================================================
-# TERRAFORM DESTROY
-# ============================================================
-
-- stage: TerraformDestroy
-  displayName: 'Terraform Destroy'
-  condition: eq('${{ parameters.action }}', 'Destroy')
-
-  jobs:
-    - deployment: Destroy
-      displayName: 'Terraform Destroy'
+  # ================================
+  # DESTROY DEPLOYMENT JOB WITH APPROVAL
+  # ================================
+  - ${{ if eq(parameters.action, 'Destroy') }}:
+    - deployment: 'TerraformDestroy_${{ parameters.env }}'
+      displayName: 'Terraform Destroy - ${{ parameters.env }} Environment'
+      pool:
+        name: ubuntu-latest
       environment: '${{ parameters.env }}'
+      variables:
+          ${{ if eq(parameters.env, 'Dev') }}:
+              tfvarsFile: 'environments/dev.tfvars'
+              tfStateFile: 'dev.tfstate'
 
+          ${{ if eq(parameters.env, 'ITG') }}:
+            tfvarsFile: 'environments/itg.tfvars'
+            tfStateFile: 'itg.tfstate'
+
+            ${{ if eq(parameters.env, 'Prod') }}:
+              tfvarsFile: 'environments/prod.tfvars'
+              tfStateFile: 'prod.tfstate'
       strategy:
         runOnce:
           deploy:
             steps:
-
               - checkout: self
+                displayName: 'Checkout Source Code'
 
-              # Install Terraform
               - task: TerraformInstaller@1
-                displayName: 'Install Terraform'
+                displayName: 'Terraform Installer'
                 inputs:
-                  terraformVersion: $(terraformVersion)
+                  terraformVersion: 'latest'
 
               # Terraform Init
               - task: AzureCLI@2
@@ -242,7 +484,7 @@ stages:
                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
                   ARM_TENANT_ID: $(tenantId)          
 
-              # Terraform Destroy
+                # Terraform Destroy
               - task: AzureCLI@2
                 displayName: 'Terraform Destroy'
                 inputs:
@@ -260,3 +502,7 @@ stages:
                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
                   ARM_SUBSCRIPTION_ID: $(subscriptionId)
                   ARM_TENANT_ID: $(tenantId)            
+      
+
+            # Pre-Init: Enable Bootstrap Storage Account Network Access for Terraform Init (ONLY if exists)
+            
