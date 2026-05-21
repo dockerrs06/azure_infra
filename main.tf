@@ -1,5 +1,3 @@
-
-
 # ----------------------------
 # Resource Group
 # ----------------------------
@@ -23,23 +21,20 @@ resource "azurerm_storage_account" "sa" {
   }
 }
 
-# Random for unique SA name
 resource "random_string" "rand" {
   length  = 4
   special = false
   upper   = false
 }
 
-
-
-
-
-
-
+# ----------------------------
+# VM MODULE CALL ✅ FIXED
+# ----------------------------
 module "windows_vm" {
   source = "./modules/virtualmachine"
 
-  resource_group_name = var.resource_group_name
+  env                 = var.env
+  resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   vm_name             = var.vm_name
   admin_username      = var.admin_username
