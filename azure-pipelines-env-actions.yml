@@ -381,7 +381,7 @@
     - deployment: 'TerraformApply_${{ parameters.env }}'
       displayName: 'Terraform Apply - ${{ parameters.env }} Environment'
       pool:
-        name: ubuntu-latest
+       vmImage: ubuntu-latest
       environment: '${{ parameters.env }}'
       variables:
 
@@ -437,7 +437,7 @@
     - deployment: 'TerraformDestroy_${{ parameters.env }}'
       displayName: 'Terraform Destroy - ${{ parameters.env }} Environment'
       pool:
-        name: ubuntu-latest
+        vmImage: ubuntu-latest
       environment: '${{ parameters.env }}'
       variables:
           ${{ if eq(parameters.env, 'Dev') }}:
