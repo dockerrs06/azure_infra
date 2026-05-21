@@ -586,9 +586,11 @@ variables:
   azureServiceConnection: 'dev-sub'
 
   # Backend (must already exist)
-  backendResourceGroupName_DEV: 'isac-dev-rg'
-  backendResourceGroupName_ITG: 'isac-itg-rg'
-  backendResourceGroupName_PROD: 'isac-pro-rg'
+  
+  backendResourceGroupName_DEV: 'isac-tfstate-dev-rg'
+  backendResourceGroupName_ITG: 'isac-tfstate-itg-rg'
+  backendResourceGroupName_PROD: 'isac-tfstate-prod-rg'
+
 
   backendStorageAccountName_DEV: 'isactfstatedev'
   backendStorageAccountName_ITG: 'isactfstateitg'
