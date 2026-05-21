@@ -291,11 +291,11 @@
     azureServiceConnection: 'dev-sub'
 
     # Backend Configuration
-    backendResourceGroupName_DEV: 'isac-dev-rg'
-    backendResourceGroupName_ITG: 'isac-itg-rg'
-    backendResourceGroupName_PROD: 'isac-pro-rg'
-    backendStorageAccountName_DEV: 'isactfstatedev'
-    backendStorageAccountName_ITG: 'isactfstateitg'
+    # backendResourceGroupName_DEV: 'isac-dev-rg'
+    # backendResourceGroupName_ITG: 'isac-itg-rg'
+    # backendResourceGroupName_PROD: 'isac-pro-rg'
+    # backendStorageAccountName_DEV: 'isactfstatedev'
+    # backendStorageAccountName_ITG: 'isactfstateitg'
     backendStorageAccountName_PROD: 'isactfstateprod'
     # backendContainerName_DEV: 'tfstate'
     # backendContainerName_ITG: 'tfstate'
@@ -321,15 +321,25 @@
       environment: '${{ parameters.env }}'
 
       variables:
+        
         ${{ if eq(parameters.env, 'Dev') }}:
-          tfvarsFile: 'environments/dev.tfvars'
-          tfStateFile: 'dev.tfstate'
+            tfvarsFile: 'environments/dev.tfvars'
+            tfStateFile: 'dev.tfstate'
+            backendRG: $(backendResourceGroupName_DEV)
+            backendSA: $(backendStorageAccountName_DEV)
+
         ${{ if eq(parameters.env, 'ITG') }}:
           tfvarsFile: 'environments/itg.tfvars'
           tfStateFile: 'itg.tfstate'
+          backendRG: $(backendResourceGroupName_ITG)
+          backendSA: $(backendStorageAccountName_ITG)
+
         ${{ if eq(parameters.env, 'Prod') }}:
           tfvarsFile: 'environments/prod.tfvars'
           tfStateFile: 'prod.tfstate'
+          backendRG: $(backendResourceGroupName_PROD)
+          backendSA: $(backendStorageAccountName_PROD)
+
 
       strategy:
         runOnce:
@@ -351,13 +361,19 @@
                   scriptLocation: inlineScript
                   inlineScript: |
                     terraform init \
+                      
+                        -backend-config="resource_group_name=$(backendRG)" \
+                        -backend-config="storage_account_name=$(backendSA)" \
+                        -backend-config="container_name=$(backendContainerName)" \
+                        -backend-config="key=$(tfStateFile)
+
                       # -backend-config="resource_group_name=$(backendResourceGroupName_DEV)" \
                       # -backend-config="storage_account_name=$(backendStorageAccountName_DEV)" \
                       # -backend-config="container_name=$(backendContainerName)" \
-                      -backend-config="resource_group_name=$(backendResourceGroupName_${{ upper(parameters.env) }})"
-                      -backend-config="storage_account_name=$(backendStorageAccountName_${{ upper(parameters.env) }})"
-                      -backend-config="container_name=$(backendContainerName${{ upper(parameters.env) }})"
-                      -backend-config="key=$(tfStateFile)"
+                      # -backend-config="resource_group_name=$(backendResourceGroupName_${{ upper(parameters.env) }})"
+                      # -backend-config="storage_account_name=$(backendStorageAccountName_${{ upper(parameters.env) }})"
+                      # -backend-config="container_name=$(backendContainerName${{ upper(parameters.env) }})"
+                      # -backend-config="key=$(tfStateFile)"
 
                       
                       
@@ -404,18 +420,26 @@
        vmImage: ubuntu-latest
       environment: '${{ parameters.env }}'
       variables:
+       
+        ${{ if eq(parameters.env, 'Dev') }}:
+          tfvarsFile: 'environments/dev.tfvars'
+          tfStateFile: 'dev.tfstate'
+          backendRG: $(backendResourceGroupName_DEV)
+          backendSA: $(backendStorageAccountName_DEV)
 
-          ${{ if eq(parameters.env, 'Dev') }}:
-              tfvarsFile: 'environments/dev.tfvars'
-              tfStateFile: 'dev.tfstate'
+        ${{ if eq(parameters.env, 'ITG') }}:
+          tfvarsFile: 'environments/itg.tfvars'
+          tfStateFile: 'itg.tfstate'
+          backendRG: $(backendResourceGroupName_ITG)
+          backendSA: $(backendStorageAccountName_ITG)
 
-          ${{ if eq(parameters.env, 'ITG') }}:
-            tfvarsFile: 'environments/itg.tfvars'
-            tfStateFile: 'itg.tfstate'
+        ${{ if eq(parameters.env, 'Prod') }}:
+          tfvarsFile: 'environments/prod.tfvars'
+          tfStateFile: 'prod.tfstate'
+          backendRG: $(backendResourceGroupName_PROD)
+          backendSA: $(backendStorageAccountName_PROD)
 
-      ${{ if eq(parameters.env, 'Prod') }}:
-        tfvarsFile: 'environments/prod.tfvars'
-        tfStateFile: 'prod.tfstate'
+          
       strategy:
         runOnce:
           deploy:
@@ -464,17 +488,25 @@
         vmImage: ubuntu-latest
       environment: '${{ parameters.env }}'
       variables:
-          ${{ if eq(parameters.env, 'Dev') }}:
-              tfvarsFile: 'environments/dev.tfvars'
-              tfStateFile: 'dev.tfstate'
+          
+        ${{ if eq(parameters.env, 'Dev') }}:
+          tfvarsFile: 'environments/dev.tfvars'
+          tfStateFile: 'dev.tfstate'
+          backendRG: $(backendResourceGroupName_DEV)
+          backendSA: $(backendStorageAccountName_DEV)
 
-          ${{ if eq(parameters.env, 'ITG') }}:
-            tfvarsFile: 'environments/itg.tfvars'
-            tfStateFile: 'itg.tfstate'
+        ${{ if eq(parameters.env, 'ITG') }}:
+          tfvarsFile: 'environments/itg.tfvars'
+          tfStateFile: 'itg.tfstate'
+          backendRG: $(backendResourceGroupName_ITG)
+          backendSA: $(backendStorageAccountName_ITG)
 
-            ${{ if eq(parameters.env, 'Prod') }}:
-              tfvarsFile: 'environments/prod.tfvars'
-              tfStateFile: 'prod.tfstate'
+        ${{ if eq(parameters.env, 'Prod') }}:
+          tfvarsFile: 'environments/prod.tfvars'
+          tfStateFile: 'prod.tfstate'
+          backendRG: $(backendResourceGroupName_PROD)
+          backendSA: $(backendStorageAccountName_PROD)
+
       strategy:
         runOnce:
           deploy:
