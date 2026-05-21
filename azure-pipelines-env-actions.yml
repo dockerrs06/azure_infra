@@ -587,8 +587,8 @@ variables:
 
   # Backend (must already exist)
   
-  backendResourceGroupName_DEV: 'isac-tfstate-dev-rg'
-  backendResourceGroupName_ITG: 'isac-tfstate-itg-rg'
+  backendResourceGroupName_DEV: 'isac-dev-rg'
+  backendResourceGroupName_ITG: 'isac-itg-rg'
   backendResourceGroupName_PROD: 'isac-tfstate-prod-rg'
 
 
