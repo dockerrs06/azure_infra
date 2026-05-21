@@ -328,7 +328,7 @@
               - task: TerraformInstaller@1
                 displayName: 'Terraform Installer'
                 inputs:
-                  terraformVersion: 'latest'
+                  terraformVersion: '1.6.6'
 
               - task: AzureCLI@2   # ✅ FIXED
                 displayName: 'Terraform Init'
@@ -406,7 +406,7 @@
               - task: TerraformInstaller@1
                 displayName: 'Terraform Installer'
                 inputs:
-                  terraformVersion: 'latest'
+                  terraformVersion: '1.6.6'
 
               - task: AzureCLI@2
                 displayName: 'Terraform Init'
@@ -461,7 +461,7 @@
               - task: TerraformInstaller@1
                 displayName: 'Terraform Installer'
                 inputs:
-                  terraformVersion: 'latest'
+                  terraformVersion: '1.6.6'
 
               # Terraform Init
               - task: AzureCLI@2
