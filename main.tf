@@ -1,7 +1,4 @@
 
-locals {
-  resource_group_name = "isac-${var.env}-rg"
-}
 
 # ----------------------------
 # Resource Group
