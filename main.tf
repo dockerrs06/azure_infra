@@ -16,7 +16,9 @@ resource "random_string" "rand" {
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                     = lower("isac${var.env}sa${random_string.rand.result}")
+  for_each = toset(var.storage_list)
+
+  name                     = lower("isac${var.env}${each.value}${random_string.rand.result}")
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location
   account_tier             = "Standard"
@@ -24,6 +26,7 @@ resource "azurerm_storage_account" "sa" {
 
   tags = {
     environment = var.env
+    type        = each.value
   }
 }
 
