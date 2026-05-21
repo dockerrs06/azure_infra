@@ -291,9 +291,22 @@
     azureServiceConnection: 'dev-sub'
 
     # Backend Configuration
-    backendResourceGroupName: 'isac-dev-rg'
-    backendStorageAccountName: 'isactfstatedev'
+    backendResourceGroupName_DEV: 'isac-dev-rg'
+    backendResourceGroupName_ITG: 'isac-itg-rg'
+    backendResourceGroupName_PROD: 'isac-pro-rg'
+    backendStorageAccountName_DEV: 'isactfstatedev'
+    backendStorageAccountName_ITG: 'isactfstateitg'
+    backendStorageAccountName_PROD: 'isactfstateprod'
+    # backendContainerName_DEV: 'tfstate'
+    # backendContainerName_ITG: 'tfstate'
     backendContainerName: 'tfstate'
+
+
+    #   # Backend Configuration
+#   backendResourceGroupName: 'isac-dev-rg'
+#   backendStorageAccountName: 'isactfstatedev'
+#   backendContainerName: 'tfstate'
+
   
 
   jobs:
@@ -338,10 +351,17 @@
                   scriptLocation: inlineScript
                   inlineScript: |
                     terraform init \
-                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
-                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
-                      -backend-config="container_name=$(backendContainerName)" \
+                      # -backend-config="resource_group_name=$(backendResourceGroupName_DEV)" \
+                      # -backend-config="storage_account_name=$(backendStorageAccountName_DEV)" \
+                      # -backend-config="container_name=$(backendContainerName)" \
+                      -backend-config="resource_group_name=$(backendResourceGroupName_${{ upper(parameters.env) }})"
+                      -backend-config="storage_account_name=$(backendStorageAccountName_${{ upper(parameters.env) }})"
+                      -backend-config="container_name=$(backendContainerName${{ upper(parameters.env) }})"
                       -backend-config="key=$(tfStateFile)"
+
+                      
+                      
+
                 env:
                   ARM_CLIENT_ID: $(servicePrincipalId)
                   ARM_CLIENT_SECRET: $(servicePrincipalKey)
@@ -417,9 +437,13 @@
                   inlineScript: |
 
                     terraform init \
-                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
-                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
-                      -backend-config="container_name=$(backendContainerName)" \
+                      # -backend-config="resource_group_name=$(backendResourceGroupNamew_ITG)" \
+                      # -backend-config="storage_account_name=$(backendStorageAccountName_ITG)" \
+                      # -backend-config="container_name=$(backendContainerName)" \
+                      # -backend-config="key=$(tfStateFile)"
+                      -backend-config="resource_group_name=$(backendResourceGroupName_${{ upper(parameters.env) }})"
+                      -backend-config="storage_account_name=$(backendStorageAccountName_${{ upper(parameters.env) }})"
+                      -backend-config="container_name=$(backendContainerName${{ upper(parameters.env) }})"
                       -backend-config="key=$(tfStateFile)"
 
                 env:
@@ -473,9 +497,13 @@
                   inlineScript: |
 
                     terraform init \
-                      -backend-config="resource_group_name=$(backendResourceGroupName)" \
-                      -backend-config="storage_account_name=$(backendStorageAccountName)" \
-                      -backend-config="container_name=$(backendContainerName)" \
+                      # -backend-config="resource_group_name=$(backendResourceGroupName_PROD)" \
+                      # -backend-config="storage_account_name=$(backendStorageAccountName_PROD)" \
+                      # -backend-config="container_name=$(backendContainerName)" \
+                      # -backend-config="key=$(tfStateFile)"
+                      -backend-config="resource_group_name=$(backendResourceGroupName_${{ upper(parameters.env) }})"
+                      -backend-config="storage_account_name=$(backendStorageAccountName_${{ upper(parameters.env) }})"
+                      -backend-config="container_name=$(backendContainerName${{ upper(parameters.env) }})"
                       -backend-config="key=$(tfStateFile)"
 
                 env:
