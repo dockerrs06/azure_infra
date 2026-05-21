@@ -1,3 +1,20 @@
+
+resource "azurerm_resource_group" "rg" {
+  name     = "isac-${var.env}-rg"
+  location = var.location
+}
+
+resource "azurerm_storage_account" "sa" {
+  name                     = "isac${var.env}sa1234"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+
+
+
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.vm_name}-vnet"
   address_space       = ["10.0.0.0/16"]
