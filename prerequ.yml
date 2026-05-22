@@ -23,51 +23,51 @@
 #         scriptLocation: inlineScript
 #         inlineScript: |
 
-#           location=$(location)
+          # location=$(location)
 
-#           environments=("dev" "itg")
+          # environments=("dev" "itg")
 
-#           for env in "${environments[@]}"
-#           do
-#             rg="isac-tfstate-${env}-rg"
-#             st="isactfstate${env}"
-#             container="tfstate"
+          # for env in "${environments[@]}"
+          # do
+          #   rg="isac-tfstate-${env}-rg"
+          #   st="isactfstate${env}"
+          #   container="tfstate"
 
-#             echo "==============================="
-#             echo "Processing environment: $env"
-#             echo "==============================="
+          #   echo "==============================="
+          #   echo "Processing environment: $env"
+          #   echo "==============================="
 
-#             echo "Creating Resource Group: $rg"
-#             az group create \
-#               --name $rg \
-#               --location $location
+          #   echo "Creating Resource Group: $rg"
+          #   az group create \
+          #     --name $rg \
+          #     --location $location
 
-#             echo "Creating Storage Account: $st"
-#             az storage account create \
-#               --name $st \
-#               --resource-group $rg \
-#               --location $location \
-#               --sku Standard_LRS \
-#               --kind StorageV2
+          #   echo "Creating Storage Account: $st"
+          #   az storage account create \
+          #     --name $st \
+          #     --resource-group $rg \
+          #     --location $location \
+          #     --sku Standard_LRS \
+          #     --kind StorageV2
 
-#             echo "Fetching Storage Key"
-#             key=$(az storage account keys list \
-#               --resource-group $rg \
-#               --account-name $st \
-#               --query "[0].value" \
-#               -o tsv)
+          #   echo "Fetching Storage Key"
+          #   key=$(az storage account keys list \
+          #     --resource-group $rg \
+          #     --account-name $st \
+          #     --query "[0].value" \
+          #     -o tsv)
 
-#             echo "Creating Blob Container: $container"
-#             az storage container create \
-#               --name $container \
-#               --account-name $st \
-#               --account-key $key
+          #   echo "Creating Blob Container: $container"
+          #   az storage container create \
+          #     --name $container \
+          #     --account-name $st \
+          #     --account-key $key
 
-#             echo "Enabling Versioning (Best Practice)"
-#             az storage account blob-service-properties update \
-#               --account-name $st \
-#               --resource-group $rg \
-#               --enable-versioning true
+          #   echo "Enabling Versioning (Best Practice)"
+          #   az storage account blob-service-properties update \
+          #     --account-name $st \
+          #     --resource-group $rg \
+          #     --enable-versioning true
 
 #           done
 # - stage: DestroyInfra
