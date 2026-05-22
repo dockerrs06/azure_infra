@@ -1,7 +1,3 @@
-
-
-
-
 env            = "dev"
 location       = "Central India"
 
@@ -13,8 +9,11 @@ vm_config = {
   db  = { size = "Standard_B2s" }
 }
 
-
 storage_config = {
-  logs   = "LRS"
-  backup = "LRS"
+  logs = {
+    replication_type = "LRS"
+  }
+  backup = {
+    replication_type = "GRS"
+  }
 }
