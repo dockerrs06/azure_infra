@@ -1,6 +1,20 @@
+
+
+
 env            = "itg"
 location       = "Central India"
-vm_list     = ["app", "db", "cache"]
-storage_list = ["logs", "backup", "analytics"]
+
 admin_username = "azureadmin"
 admin_password = "P@ssword12345!"
+
+vm_config = {
+  app   = { size = "Standard_B4ms" }
+  db    = { size = "Standard_B8ms" }
+  cache = { size = "Standard_B2s" }
+}
+
+storage_config = {
+  logs       = "Standard_LRS"
+  backup     = "Standard_GRS"
+  analytics  = "Standard_LRS"
+}
