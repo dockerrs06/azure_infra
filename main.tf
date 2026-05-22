@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 # ----------------------------
-# Storage Account
+# Random string for storage
 # ----------------------------
 resource "random_string" "rand" {
   length  = 4
@@ -15,36 +15,39 @@ resource "random_string" "rand" {
   upper   = false
 }
 
+# ----------------------------
+# Storage Accounts (MAP)
+# ----------------------------
 resource "azurerm_storage_account" "sa" {
-  for_each = toset(var.storage_list)
+  for_each = var.storage_config
 
-  name                     = lower("isac${var.env}${each.value}${random_string.rand.result}")
+  name                     = lower("isac${var.env}${each.key}${random_string.rand.result}")
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location
   account_tier             = "Standard"
-  account_replication_type = "LRS"
+  account_replication_type = each.value
 
   tags = {
     environment = var.env
-    type        = each.value
+    name        = each.key
   }
 }
 
 # ----------------------------
-# VM MODULE
+# Virtual Machines (MAP)
 # ----------------------------
-
 module "windows_vm" {
   source = "./modules/virtualmachine"
 
-  for_each = toset(var.vm_list)
+  for_each = var.vm_config
 
   env                 = var.env
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
 
-  vm_name        = each.value
+  vm_name = each.key
+  vm_size = each.value.size
+
   admin_username = var.admin_username
   admin_password = var.admin_password
 }
-
