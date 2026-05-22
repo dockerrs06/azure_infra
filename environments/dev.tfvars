@@ -14,7 +14,10 @@ vm_config = {
 }
 
 storage_config = {
-  logs   = "LRS"
-  backup = "LRS"
+  logs = {
+    account_replication_type = "LRS"
+  }
+  backup = {
+    account_replication_type = "LRS"
+  }
 }
-
