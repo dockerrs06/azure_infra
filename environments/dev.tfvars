@@ -1,6 +1,19 @@
+
+
+
+
 env            = "dev"
 location       = "Central India"
-vm_list        = ["app", "db"]   # ✅ multiple VM
+
 admin_username = "azureadmin"
 admin_password = "P@ssword12345!"
-storage_list = ["logs", "backup"]
+
+vm_config = {
+  app = { size = "Standard_B2s" }
+  db  = { size = "Standard_B2s" }
+}
+
+storage_config = {
+  logs   = "Standard_LRS"
+  backup = "Standard_LRS"
+}
