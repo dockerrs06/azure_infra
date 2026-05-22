@@ -209,10 +209,10 @@ parameters:
   - name: env
     displayName: "Action"
     type: string
-    default: ADD
+    default: ADD_RESOURCES
     values:
-      - ADD
-      - REMOVE
+      - ADD_RESOURCES
+      - REMOVE_RESOURCES
 
 trigger:
 - main
