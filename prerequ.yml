@@ -139,37 +139,37 @@
 #         scriptLocation: inlineScript
 #         inlineScript: |
 
-#           location=$(location)
-#           environments=("dev" "itg")
+          # location=$(location)
+          # environments=("dev" "itg")
 
-#           for env in "${environments[@]}"
-#           do
-#             rg="isac-tfstate-${env}-rg"
-#             st="isactfstate${env}"
-#             container="tfstate"
+          # for env in "${environments[@]}"
+          # do
+          #   rg="isac-tfstate-${env}-rg"
+          #   st="isactfstate${env}"
+          #   container="tfstate"
 
-#             echo "Creating RG: $rg"
-#             az group create --name $rg --location $location
+          #   echo "Creating RG: $rg"
+          #   az group create --name $rg --location $location
 
-#             echo "Creating Storage: $st"
-#             az storage account create \
-#               --name $st \
-#               --resource-group $rg \
-#               --location $location \
-#               --sku Standard_LRS \
-#               --kind StorageV2
+          #   echo "Creating Storage: $st"
+          #   az storage account create \
+          #     --name $st \
+          #     --resource-group $rg \
+          #     --location $location \
+          #     --sku Standard_LRS \
+          #     --kind StorageV2
 
-#             key=$(az storage account keys list \
-#               --resource-group $rg \
-#               --account-name $st \
-#               --query "[0].value" \
-#               -o tsv)
+          #   key=$(az storage account keys list \
+          #     --resource-group $rg \
+          #     --account-name $st \
+          #     --query "[0].value" \
+          #     -o tsv)
 
-#             echo "Creating Container: $container"
-#             az storage container create \
-#               --name $container \
-#               --account-name $st \
-#               --account-key $key
+          #   echo "Creating Container: $container"
+          #   az storage container create \
+          #     --name $container \
+          #     --account-name $st \
+          #     --account-key $key
 
 #           done
 
@@ -252,14 +252,10 @@ stages:
             st="isactfstate${env}"
             container="tfstate"
 
-            echo "==============================="
-            echo "Processing: $env"
-            echo "==============================="
-
-            echo "Creating Resource Group: $rg"
+            echo "Creating RG: $rg"
             az group create --name $rg --location $location
 
-            echo "Creating Storage Account: $st"
+            echo "Creating Storage: $st"
             az storage account create \
               --name $st \
               --resource-group $rg \
@@ -267,23 +263,18 @@ stages:
               --sku Standard_LRS \
               --kind StorageV2
 
-            echo "Waiting for storage account to be ready..."
-            sleep 20
+            key=$(az storage account keys list \
+              --resource-group $rg \
+              --account-name $st \
+              --query "[0].value" \
+              -o tsv)
 
-            echo "Creating Blob Container: tfstate"
+            echo "Creating Container: $container"
             az storage container create \
               --name $container \
               --account-name $st \
-              --auth-mode login
-
-            echo "Enabling Versioning"
-            az storage account blob-service-properties update \
-              --account-name $st \
-              --resource-group $rg \
-              --enable-versioning true
-
+              --account-key $key
           done
-
 # =====================================
 # ✅ DESTROY INFRA (REMOVE)
 # =====================================
