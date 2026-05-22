@@ -1,3 +1,12 @@
+parameters:
+  - name: action
+    displayName: "Select Action"
+    type: string
+    default: ADD
+    values:
+      - ADD
+      - REMOVE
+
 trigger:
 - main   # change if needed
 
@@ -10,6 +19,7 @@ variables:
 stages:
 - stage: CreateInfra
   displayName: "Create RG, Storage & Container"
+  condition: eq('${{ parameters.action }}', 'ADD')
   jobs:
   - job: Deploy
     displayName: "Azure CLI Deployment"
@@ -72,8 +82,7 @@ stages:
           done
 - stage: DestroyInfra
   displayName: "Destroy RG & Storage"
-  dependsOn: CreateInfra   # runs after creation
-  condition: succeeded()   # you can change this
+  condition: eq('${{ parameters.action }}', 'REMOVE')
   jobs:
   - job: Destroy
     displayName: "Delete Resource Groups"
