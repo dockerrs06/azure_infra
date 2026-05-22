@@ -1,108 +1,108 @@
-# trigger:
-# - main   # change if needed
+trigger:
+- main   # change if needed
 
-# pool:
-#   vmImage: 'ubuntu-latest'
+pool:
+  vmImage: 'ubuntu-latest'
 
-# variables:
-#   location: centralindia
+variables:
+  location: centralindia
 
-# stages:
-# - stage: CreateInfra
-#   displayName: "Create RG, Storage & Container"
-#   jobs:
-#   - job: Deploy
-#     displayName: "Azure CLI Deployment"
-#     steps:
+stages:
+- stage: CreateInfra
+  displayName: "Create RG, Storage & Container"
+  jobs:
+  - job: Deploy
+    displayName: "Azure CLI Deployment"
+    steps:
 
-#     - task: AzureCLI@2
-#       displayName: "Create RG + Storage + Blob Container"
-#       inputs:
-#         azureSubscription: 'dev-sub'   # 🔴 replace this
-#         scriptType: bash
-#         scriptLocation: inlineScript
-#         inlineScript: |
+    - task: AzureCLI@2
+      displayName: "Create RG + Storage + Blob Container"
+      inputs:
+        azureSubscription: 'dev-sub'   # 🔴 replace this
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
 
-          # location=$(location)
+          location=$(location)
 
-          # environments=("dev" "itg")
+          environments=("dev" "itg")
 
-          # for env in "${environments[@]}"
-          # do
-          #   rg="isac-tfstate-${env}-rg"
-          #   st="isactfstate${env}"
-          #   container="tfstate"
+          for env in "${environments[@]}"
+          do
+            rg="isac-tfstate-${env}-rg"
+            st="isactfstate${env}"
+            container="tfstate"
 
-          #   echo "==============================="
-          #   echo "Processing environment: $env"
-          #   echo "==============================="
+            echo "==============================="
+            echo "Processing environment: $env"
+            echo "==============================="
 
-          #   echo "Creating Resource Group: $rg"
-          #   az group create \
-          #     --name $rg \
-          #     --location $location
+            echo "Creating Resource Group: $rg"
+            az group create \
+              --name $rg \
+              --location $location
 
-          #   echo "Creating Storage Account: $st"
-          #   az storage account create \
-          #     --name $st \
-          #     --resource-group $rg \
-          #     --location $location \
-          #     --sku Standard_LRS \
-          #     --kind StorageV2
+            echo "Creating Storage Account: $st"
+            az storage account create \
+              --name $st \
+              --resource-group $rg \
+              --location $location \
+              --sku Standard_LRS \
+              --kind StorageV2
 
-          #   echo "Fetching Storage Key"
-          #   key=$(az storage account keys list \
-          #     --resource-group $rg \
-          #     --account-name $st \
-          #     --query "[0].value" \
-          #     -o tsv)
+            echo "Fetching Storage Key"
+            key=$(az storage account keys list \
+              --resource-group $rg \
+              --account-name $st \
+              --query "[0].value" \
+              -o tsv)
 
-          #   echo "Creating Blob Container: $container"
-          #   az storage container create \
-          #     --name $container \
-          #     --account-name $st \
-          #     --account-key $key
+            echo "Creating Blob Container: $container"
+            az storage container create \
+              --name $container \
+              --account-name $st \
+              --account-key $key
 
-          #   echo "Enabling Versioning (Best Practice)"
-          #   az storage account blob-service-properties update \
-          #     --account-name $st \
-          #     --resource-group $rg \
-          #     --enable-versioning true
+            echo "Enabling Versioning (Best Practice)"
+            az storage account blob-service-properties update \
+              --account-name $st \
+              --resource-group $rg \
+              --enable-versioning true
 
-#           done
-# - stage: DestroyInfra
-#   displayName: "Destroy RG & Storage"
-#   dependsOn: CreateInfra   # runs after creation
-#   condition: succeeded()   # you can change this
-#   jobs:
-#   - job: Destroy
-#     displayName: "Delete Resource Groups"
-#     steps:
+          done
+- stage: DestroyInfra
+  displayName: "Destroy RG & Storage"
+  dependsOn: CreateInfra   # runs after creation
+  condition: succeeded()   # you can change this
+  jobs:
+  - job: Destroy
+    displayName: "Delete Resource Groups"
+    steps:
 
-#     - task: AzureCLI@2
-#       displayName: "Delete RGs"
-#       inputs:
-#         azureSubscription: 'dev-sub'
-#         scriptType: bash
-#         scriptLocation: inlineScript
-#         inlineScript: |
+    - task: AzureCLI@2
+      displayName: "Delete RGs"
+      inputs:
+        azureSubscription: 'dev-sub'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
 
-#           environments=("dev" "itg")
+          environments=("dev" "itg")
 
-#           for env in "${environments[@]}"
-#           do
-#             rg="isac-tfstate-${env}-rg"
+          for env in "${environments[@]}"
+          do
+            rg="isac-tfstate-${env}-rg"
 
-#             echo "================================="
-#             echo "Deleting Resource Group: $rg"
-#             echo "================================="
+            echo "================================="
+            echo "Deleting Resource Group: $rg"
+            echo "================================="
 
-#             az group delete \
-#               --name $rg \
-#               --yes \
-#               --no-wait
+            az group delete \
+              --name $rg \
+              --yes \
+              --no-wait
 
-#           done
+          done
 # parameters:
 #   - name: env
 #     type: string
@@ -309,144 +309,144 @@
 #               --no-wait
 
 #           done
-parameters:
-  - name: action
-    displayName: "Select Action"
-    type: string
-    default: ADD
-    values:
-      - ADD
-      - REMOVE
+# parameters:
+#   - name: action
+#     displayName: "Select Action"
+#     type: string
+#     default: ADD
+#     values:
+#       - ADD
+#       - REMOVE
 
-trigger:
-- main
+# trigger:
+# - main
 
-pool:
-  vmImage: ubuntu-latest
+# pool:
+#   vmImage: ubuntu-latest
 
-variables:
-  location: centralindia
+# variables:
+#   location: centralindia
 
-stages:
+# stages:
 
-# ======================================================
-# ✅ CREATE INFRA (ADD)
-# ======================================================
-- stage: CreateInfra
-  displayName: "Create RG, Storage & Container"
-  condition: eq('${{ parameters.action }}', 'ADD')
+# # ======================================================
+# # ✅ CREATE INFRA (ADD)
+# # ======================================================
+# - stage: CreateInfra
+#   displayName: "Create RG, Storage & Container"
+#   condition: eq('${{ parameters.action }}', 'ADD')
 
-  jobs:
-  - job: CreateResources
-    displayName: "Create Azure Resources"
+#   jobs:
+#   - job: CreateResources
+#     displayName: "Create Azure Resources"
 
-    steps:
-    - task: AzureCLI@2
-      displayName: "Create RG + Storage + Blob Container"
-      inputs:
-        azureSubscription: 'dev-sub'
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
+#     steps:
+#     - task: AzureCLI@2
+#       displayName: "Create RG + Storage + Blob Container"
+#       inputs:
+#         azureSubscription: 'dev-sub'
+#         scriptType: bash
+#         scriptLocation: inlineScript
+#         inlineScript: |
 
-          location=$(location)
-          environments=("dev" "itg")
+#           location=$(location)
+#           environments=("dev" "itg")
 
-          for env in "${environments[@]}"
-          do
-            rg="isac-tfstate-${env}-rg"
-            st="isactfstate${env}"
-            container="tfstate"
+#           for env in "${environments[@]}"
+#           do
+#             rg="isac-tfstate-${env}-rg"
+#             st="isactfstate${env}"
+#             container="tfstate"
 
-            echo "===================================="
-            echo "Processing Environment: $env"
-            echo "===================================="
+#             echo "===================================="
+#             echo "Processing Environment: $env"
+#             echo "===================================="
 
-            echo "Creating Resource Group: $rg"
-            az group create \
-              --name $rg \
-              --location $location
+#             echo "Creating Resource Group: $rg"
+#             az group create \
+#               --name $rg \
+#               --location $location
 
-            echo "Creating Storage Account: $st"
-            az storage account create \
-              --name $st \
-              --resource-group $rg \
-              --location $location \
-              --sku Standard_LRS \
-              --kind StorageV2
+#             echo "Creating Storage Account: $st"
+#             az storage account create \
+#               --name $st \
+#               --resource-group $rg \
+#               --location $location \
+#               --sku Standard_LRS \
+#               --kind StorageV2
 
-            echo "Waiting for Storage Account readiness..."
-            sleep 10
+#             echo "Waiting for Storage Account readiness..."
+#             sleep 10
 
-            echo "Creating Blob Container with retry..."
+#             echo "Creating Blob Container with retry..."
 
-            retries=10
-            count=0
-            success=false
+#             retries=10
+#             count=0
+#             success=false
 
-            while [ $count -lt $retries ]
-            do
-              echo "Attempt $(($count+1))..."
+#             while [ $count -lt $retries ]
+#             do
+#               echo "Attempt $(($count+1))..."
 
-              az storage container create \
-                --name $container \
-                --account-name $st \
-                --auth-mode login && success=true && break
+#               az storage container create \
+#                 --name $container \
+#                 --account-name $st \
+#                 --auth-mode login && success=true && break
 
-              echo "Storage not ready yet. Retrying in 15 seconds..."
-              sleep 15
-              count=$(($count+1))
-            done
+#               echo "Storage not ready yet. Retrying in 15 seconds..."
+#               sleep 15
+#               count=$(($count+1))
+#             done
 
-            if [ "$success" = false ]; then
-              echo "❌ Failed to create container for $st"
-              exit 1
-            fi
+#             if [ "$success" = false ]; then
+#               echo "❌ Failed to create container for $st"
+#               exit 1
+#             fi
 
-            echo "✅ Container created: tfstate"
+#             echo "✅ Container created: tfstate"
 
-            echo "Enabling Versioning"
-            az storage account blob-service-properties update \
-              --account-name $st \
-              --resource-group $rg \
-              --enable-versioning true
+#             echo "Enabling Versioning"
+#             az storage account blob-service-properties update \
+#               --account-name $st \
+#               --resource-group $rg \
+#               --enable-versioning true
 
-          done
+#           done
 
 
-# ======================================================
-# ✅ DESTROY INFRA (REMOVE)
-# ======================================================
-- stage: DestroyInfra
-  displayName: "Destroy RG & Storage"
-  condition: eq('${{ parameters.action }}', 'REMOVE')
+# # ======================================================
+# # ✅ DESTROY INFRA (REMOVE)
+# # ======================================================
+# - stage: DestroyInfra
+#   displayName: "Destroy RG & Storage"
+#   condition: eq('${{ parameters.action }}', 'REMOVE')
 
-  jobs:
-  - job: DestroyResources
-    displayName: "Delete Resource Groups"
+#   jobs:
+#   - job: DestroyResources
+#     displayName: "Delete Resource Groups"
 
-    steps:
-    - task: AzureCLI@2
-      displayName: "Delete RGs"
-      inputs:
-        azureSubscription: 'dev-sub'
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
+#     steps:
+#     - task: AzureCLI@2
+#       displayName: "Delete RGs"
+#       inputs:
+#         azureSubscription: 'dev-sub'
+#         scriptType: bash
+#         scriptLocation: inlineScript
+#         inlineScript: |
 
-          environments=("dev" "itg")
+#           environments=("dev" "itg")
 
-          for env in "${environments[@]}"
-          do
-            rg="isac-tfstate-${env}-rg"
+#           for env in "${environments[@]}"
+#           do
+#             rg="isac-tfstate-${env}-rg"
 
-            echo "===================================="
-            echo "Deleting Resource Group: $rg"
-            echo "===================================="
+#             echo "===================================="
+#             echo "Deleting Resource Group: $rg"
+#             echo "===================================="
 
-            az group delete \
-              --name $rg \
-              --yes \
-              --no-wait
+#             az group delete \
+#               --name $rg \
+#               --yes \
+#               --no-wait
 
-          done
+#           done
