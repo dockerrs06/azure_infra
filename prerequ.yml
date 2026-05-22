@@ -230,7 +230,7 @@ stages:
 # =====================================
 - stage: CreateInfra
   displayName: "Create RG, Storage & Container"
-  condition: eq('${{ parameters.env }}', 'ADD')
+  condition: eq('${{ parameters.env }}', 'ADD_RESOURCES')
   jobs:
   - job: Deploy
     displayName: "Create Resources"
@@ -289,7 +289,7 @@ stages:
 # =====================================
 - stage: DestroyInfra
   displayName: "Destroy RG & Storage"
-  condition: eq('${{ parameters.env }}', 'REMOVE')
+  condition: eq('${{ parameters.env }}', 'REMOVE_RESOURCES')
   jobs:
   - job: Destroy
     displayName: "Delete Resource Groups"
