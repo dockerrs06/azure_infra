@@ -13,11 +13,8 @@ vm_config = {
   db  = { size = "Standard_B2s" }
 }
 
+
 storage_config = {
-  logs = {
-    account_replication_type = "LRS"
-  }
-  backup = {
-    account_replication_type = "LRS"
-  }
+  logs   = "LRS"
+  backup = "LRS"
 }
