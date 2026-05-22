@@ -1,13 +1,19 @@
 variable "env" {}
 variable "location" {}
 
-
 variable "admin_username" {}
-
 variable "admin_password" {
   sensitive = true
 }
 
-variable "vm_list" {
-  type = list(string)
+# ✅ VM MAP
+variable "vm_config" {
+  type = map(object({
+    size = string
+  }))
+}
+
+# ✅ Storage MAP
+variable "storage_config" {
+  type = map(string)
 }
