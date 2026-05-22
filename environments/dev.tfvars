@@ -14,6 +14,7 @@ vm_config = {
 }
 
 storage_config = {
-  logs   = "Standard_LRS"
-  backup = "Standard_LRS"
+  logs   = "LRS"
+  backup = "LRS"
 }
+
