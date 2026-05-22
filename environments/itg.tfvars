@@ -1,20 +1,37 @@
-
-
-
-env            = "itg"
-location       = "Central India"
+env      = "itg"
+location = "Central India"
 
 admin_username = "azureadmin"
 admin_password = "P@ssword12345!"
 
+# ✅ 4 Virtual Machines
 vm_config = {
-  app   = { size = "Standard_B4ms" }
-  db    = { size = "Standard_B8ms" }
-  cache = { size = "Standard_B2s" }
+  app1 = {
+    size = "Standard_B2s"
+  }
+  app2 = {
+    size = "Standard_B2s"
+  }
+  db1 = {
+    size = "Standard_B2s"
+  }
+  cache1 = {
+    size = "Standard_B2s"
+  }
 }
 
+# ✅ 4 Storage Accounts
 storage_config = {
-  logs       = "Standard_LRS"
-  backup     = "Standard_GRS"
-  analytics  = "Standard_LRS"
+  logs = {
+    replication_type = "LRS"
+  }
+  backup = {
+    replication_type = "LRS"
+  }
+  archive = {
+    replication_type = "GRS"
+  }
+  analytics = {
+    replication_type = "LRS"
+  }
 }
