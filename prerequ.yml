@@ -70,3 +70,36 @@ stages:
               --enable-versioning true
 
           done
+- stage: DestroyInfra
+  displayName: "Destroy RG & Storage"
+  dependsOn: CreateInfra   # runs after creation
+  condition: succeeded()   # you can change this
+  jobs:
+  - job: Destroy
+    displayName: "Delete Resource Groups"
+    steps:
+
+    - task: AzureCLI@2
+      displayName: "Delete RGs"
+      inputs:
+        azureSubscription: 'dev-sub'
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+
+          environments=("dev" "itg")
+
+          for env in "${environments[@]}"
+          do
+            rg="isac-tfstate-${env}-rg"
+
+            echo "================================="
+            echo "Deleting Resource Group: $rg"
+            echo "================================="
+
+            az group delete \
+              --name $rg \
+              --yes \
+              --no-wait
+
+          done
