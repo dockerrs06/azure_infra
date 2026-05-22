@@ -14,6 +14,13 @@ variable "vm_config" {
 }
 
 # ✅ Storage MAP
+#v ariable "storage_config" {
+  # type = map(string)
+# }
+
 variable "storage_config" {
-  type = map(string)
+  type = map(object({
+    replication_type = string
+  }))
 }
+
