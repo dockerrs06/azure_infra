@@ -34,8 +34,8 @@ resource "azurerm_network_interface" "nic" {
 
 resource "azurerm_windows_virtual_machine" "vm" {
   name                = "${var.env}-${var.vm_name}"
-  location            = var.location
   resource_group_name = var.resource_group_name
+  location            = var.location
   size                = var.vm_size
 
   admin_username = var.admin_username
@@ -57,3 +57,4 @@ resource "azurerm_windows_virtual_machine" "vm" {
     version   = "latest"
   }
 }
+``
