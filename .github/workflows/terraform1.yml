@@ -30,33 +30,30 @@ jobs:
 
     steps:
 
-    # ✅ Checkout Code
-    - name: Checkout
+    # ✅ Checkout
+    - name: Checkout Code
       uses: actions/checkout@v4
 
-    # ✅ Azure Login (CLIENT SECRET ✅ FIXED)
+    # ✅ Azure Login (✅ FINAL FIX)
     - name: Azure Login
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # ✅ Setup Terraform (FORCED VERSION ✅)
+    # ✅ Setup Terraform (✅ FORCE VERSION)
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: 1.6.6
         terraform_wrapper: false
 
-    # ✅ Verify Terraform Version (VERY IMPORTANT ✅)
+    # ✅ Verify Terraform Version (VERY IMPORTANT)
     - name: Verify Terraform Version
       run: |
         which terraform
         terraform version
 
-    # ✅ Set Environment Config (like ADO variables)
+    # ✅ Set Environment Variables
     - name: Set Environment Config
       run: |
         case "${{ github.event.inputs.environment }}" in
@@ -125,3 +122,4 @@ jobs:
           -var-file="$TFVARS" \
           -auto-approve \
           -input=false
+``
