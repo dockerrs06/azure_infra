@@ -22,7 +22,6 @@ on:
           - destroy
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -31,17 +30,18 @@ jobs:
 
     steps:
 
-    # ✅ Checkout
-    - name: Checkout Code
+    # ✅ Checkout Code
+    - name: Checkout
       uses: actions/checkout@v4
 
-    # ✅ Azure Login
+    # ✅ Azure Login (CLIENT SECRET ✅ FIXED)
     - name: Azure Login
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
     # ✅ Setup Terraform (FORCED VERSION ✅)
     - name: Setup Terraform
@@ -50,13 +50,13 @@ jobs:
         terraform_version: 1.6.6
         terraform_wrapper: false
 
-    # ✅ VERIFY VERSION (CRITICAL ✅)
+    # ✅ Verify Terraform Version (VERY IMPORTANT ✅)
     - name: Verify Terraform Version
       run: |
         which terraform
         terraform version
 
-    # ✅ Set Environment Variables
+    # ✅ Set Environment Config (like ADO variables)
     - name: Set Environment Config
       run: |
         case "${{ github.event.inputs.environment }}" in
