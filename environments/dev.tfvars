@@ -1,4 +1,4 @@
-resource_group_name = "isac-dev-rg"
+resource_group_name = "isac-tfstate-dev-rg"
 location            = "Central India"
 
 vm_name        = "isac-win-vm"
