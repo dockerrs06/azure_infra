@@ -96,6 +96,7 @@ jobs:
             -backend-config="storage_account_name=$BACKEND_SA" \
             -backend-config="container_name=$CONTAINER" \
             -backend-config="key=$TFSTATE"
+            -backend-config="use_azuread_auth=true"
 
       # ✅ Terraform Format
       - name: Terraform Format
