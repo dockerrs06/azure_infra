@@ -1,14 +1,10 @@
-# ----------------------------
 # Resource Group
-# ----------------------------
 resource "azurerm_resource_group" "rg" {
   name     = "isac-${var.env}-rg"
   location = var.location
 }
 
-# ----------------------------
 # Storage Account
-# ----------------------------
 resource "random_string" "rand" {
   length  = 4
   special = false
@@ -27,9 +23,7 @@ resource "azurerm_storage_account" "sa" {
   }
 }
 
-# ----------------------------
 # VM MODULE
-# ----------------------------
 module "windows_vm" {
   source = "./modules/virtualmachine"
 
@@ -40,3 +34,4 @@ module "windows_vm" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
 }
+``
