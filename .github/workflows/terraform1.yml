@@ -3,9 +3,9 @@ name: Terraform CICD
 on:
   push:
     branches:
-      - main       # dev
-      - develop    # itg
-      - relese     # prod
+      - main
+      - develop
+      - relese
   pull_request:
   workflow_dispatch:
     inputs:
@@ -40,17 +40,14 @@ jobs:
       ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
 
     steps:
-      # ✅ Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Azure Login
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # ✅ Terraform Setup
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -60,7 +57,7 @@ jobs:
       - name: Verify Terraform Version
         run: terraform version
 
-      # ✅ ✅ Environment Selection Logic (KEY PART)
+      # ✅ Environment Mapping FIXED
       - name: Set Environment Config
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -104,14 +101,12 @@ jobs:
 
           echo "CONTAINER=tfstate" >> $GITHUB_ENV
 
-      # ✅ Debug (optional)
       - name: Debug Variables
         run: |
           echo "ENV=$ENV"
           echo "BACKEND_RG=$BACKEND_RG"
           echo "BACKEND_SA=$BACKEND_SA"
 
-      # ✅ Terraform Init
       - name: Terraform Init
         run: |
           terraform init -input=false \
@@ -121,14 +116,14 @@ jobs:
             -backend-config="key=$TFSTATE" \
             -backend-config="use_azuread_auth=true"
 
-      # ✅ Validate
+      # ✅ FIXED indentation
       - name: Terraform Format
         run: terraform fmt -check
 
       - name: Terraform Validate
         run: terraform validate
 
-      # ✅ ✅ PLAN (AUTO + MANUAL)
+      # ✅ PLAN (auto + manual)
       - name: Terraform Plan
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'plan'
         run: |
@@ -137,7 +132,7 @@ jobs:
             -out=tfplan \
             -input=false
 
-      # ✅ ✅ APPLY (MANUAL ONLY)
+      # ✅ APPLY
       - name: Terraform Apply
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
         run: |
@@ -146,7 +141,7 @@ jobs:
             -auto-approve \
             -input=false
 
-      # ✅ ✅ DESTROY (MANUAL ONLY)
+      # ✅ DESTROY
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: |
