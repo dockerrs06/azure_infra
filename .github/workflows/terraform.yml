@@ -15,7 +15,6 @@ on:
           - dev
           - itg
           - prod
-
       action:
         description: "Select Action"
         required: true
@@ -32,13 +31,20 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    # ✅ FIX: Add Terraform Azure authentication (CRITICAL)
+    env:
+      ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+      ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+      ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+      ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+
     steps:
 
       # ✅ Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Azure Login
+      # ✅ Azure Login (optional but good for az CLI/debug)
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -54,10 +60,9 @@ jobs:
       # ✅ Verify Terraform Version
       - name: Verify Terraform Version
         run: |
-          which terraform
           terraform version
 
-      # ✅ Set Environment Variables
+      # ✅ Set Environment Config
       - name: Set Environment Config
         run: |
           case "${{ github.event.inputs.environment }}" in
@@ -102,7 +107,7 @@ jobs:
 
       # ✅ Terraform Plan
       - name: Terraform Plan
-        if: github.event.inputs.action == 'plan'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan'
         run: |
           terraform plan \
             -var-file="$TFVARS" \
@@ -111,7 +116,7 @@ jobs:
 
       # ✅ Terraform Apply
       - name: Terraform Apply
-        if: github.event.inputs.action == 'apply'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
         run: |
           terraform apply \
             -var-file="$TFVARS" \
@@ -120,7 +125,7 @@ jobs:
 
       # ✅ Terraform Destroy
       - name: Terraform Destroy
-        if: github.event.inputs.action == 'destroy'
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: |
           terraform destroy \
             -var-file="$TFVARS" \
