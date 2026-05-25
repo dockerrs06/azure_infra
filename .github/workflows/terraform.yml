@@ -97,6 +97,7 @@ jobs:
             -backend-config="container_name=$CONTAINER" \
             -backend-config="key=$TFSTATE"
             -backend-config="use_azuread_auth=true"
+            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY }}"
 
       # ✅ Terraform Format
       - name: Terraform Format
