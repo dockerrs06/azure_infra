@@ -1,0 +1,149 @@
+name: Terraform CICD
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select Environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - itg
+          - prod
+      action:
+        description: "Select Action"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    # ✅ Azure authentication for Terraform (CRITICAL)
+    env:
+      ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+      ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+      ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+      ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
+
+    steps:
+      # ✅ Checkout repo
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ✅ Azure login (optional for debugging/CLI use)
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # ✅ Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+
+      # ✅ Verify Terraform
+      - name: Verify Terraform Version
+        run: terraform version
+
+      # ✅ Set Environment Config (FIXED with default)
+      - name: Set Environment Config
+        run: |
+          ENV="${{ github.event.inputs.environment }}"
+
+          # ✅ Handle push/PR (no inputs)
+          if [ -z "$ENV" ]; then
+            ENV="dev"
+          fi
+
+          echo "Using environment: $ENV"
+
+          case "$ENV" in
+            dev)
+              echo "TFVARS=environments/dev.tfvars" >> $GITHUB_ENV
+              echo "TFSTATE=dev.tfstate" >> $GITHUB_ENV
+              echo "BACKEND_RG=isac-tfstate-dev-rg" >> $GITHUB_ENV
+              echo "BACKEND_SA=isactfstatedev" >> $GITHUB_ENV
+              ;;
+            itg)
+              echo "TFVARS=environments/itg.tfvars" >> $GITHUB_ENV
+              echo "TFSTATE=itg.tfstate" >> $GITHUB_ENV
+              echo "BACKEND_RG=isac-tfstate-itg-rg" >> $GITHUB_ENV
+              echo "BACKEND_SA=isactfstateitg" >> $GITHUB_ENV
+              ;;
+            prod)
+              echo "TFVARS=environments/prod.tfvars" >> $GITHUB_ENV
+              echo "TFSTATE=prod.tfstate" >> $GITHUB_ENV
+              echo "BACKEND_RG=isac-tfstate-prod-rg" >> $GITHUB_ENV
+              echo "BACKEND_SA=isactfstateprod" >> $GITHUB_ENV
+              ;;
+          esac
+
+          echo "CONTAINER=tfstate" >> $GITHUB_ENV
+
+      # ✅ Debug (optional but recommended)
+      - name: Debug Variables
+        run: |
+          echo "BACKEND_RG=$BACKEND_RG"
+          echo "BACKEND_SA=$BACKEND_SA"
+          echo "CONTAINER=$CONTAINER"
+          echo "TFSTATE=$TFSTATE"
+
+      # ✅ Terraform Init (FIXED)
+      - name: Terraform Init
+        run: |
+          terraform init -input=false \
+            -backend-config="resource_group_name=$BACKEND_RG" \
+            -backend-config="storage_account_name=$BACKEND_SA" \
+            -backend-config="container_name=$CONTAINER" \
+            -backend-config="key=$TFSTATE" \
+            -backend-config="use_azuread_auth=true"
+
+      # ✅ Terraform Format
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      # ✅ Terraform Validate
+      - name: Terraform Validate
+        run: terraform validate
+
+      # ✅ Terraform Plan
+      - name: Terraform Plan
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan'
+        run: |
+          terraform plan \
+            -var-file="$TFVARS" \
+            -out=tfplan \
+            -input=false
+
+      # ✅ Terraform Apply
+      - name: Terraform Apply
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+        run: |
+          terraform apply \
+            -var-file="$TFVARS" \
+            -auto-approve \
+            -input=false
+
+      # ✅ Terraform Destroy
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: |
+          terraform destroy \
+            -var-file="$TFVARS" \
+            -auto-approve \
+            -input=false
