@@ -31,7 +31,7 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
-    # ✅ FIX: Add Terraform Azure authentication (CRITICAL)
+    # ✅ Azure auth for Terraform (CRITICAL)
     env:
       ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
       ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
@@ -39,30 +39,24 @@ jobs:
       ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
 
     steps:
-
-      # ✅ Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # ✅ Azure Login (optional but good for az CLI/debug)
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # ✅ Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.6.6
           terraform_wrapper: false
 
-      # ✅ Verify Terraform Version
       - name: Verify Terraform Version
-        run: |
-          terraform version
+        run: terraform version
 
-      # ✅ Set Environment Config
+      # ✅ FIXED: removed &gt;&gt;
       - name: Set Environment Config
         run: |
           case "${{ github.event.inputs.environment }}" in
@@ -88,26 +82,23 @@ jobs:
 
           echo "CONTAINER=tfstate" >> $GITHUB_ENV
 
-      # ✅ Terraform Init
+      # ✅ FIXED: backend auth + correct command
       - name: Terraform Init
         run: |
           terraform init -input=false \
             -backend-config="resource_group_name=$BACKEND_RG" \
             -backend-config="storage_account_name=$BACKEND_SA" \
             -backend-config="container_name=$CONTAINER" \
-            -backend-config="key=$TFSTATE"
+            -backend-config="key=$TFSTATE" \
             -backend-config="use_azuread_auth=true"
-            -backend-config="access_key=${{ secrets.AZURE_STORAGE_KEY }}"
 
-      # ✅ Terraform Format
       - name: Terraform Format
         run: terraform fmt -check
 
-      # ✅ Terraform Validate
       - name: Terraform Validate
         run: terraform validate
 
-      # ✅ Terraform Plan
+      # ✅ FIXED: removed &amp;&amp;
       - name: Terraform Plan
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan'
         run: |
@@ -116,7 +107,6 @@ jobs:
             -out=tfplan \
             -input=false
 
-      # ✅ Terraform Apply
       - name: Terraform Apply
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
         run: |
@@ -125,7 +115,6 @@ jobs:
             -auto-approve \
             -input=false
 
-      # ✅ Terraform Destroy
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: |
