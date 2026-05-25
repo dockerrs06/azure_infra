@@ -34,4 +34,4 @@ module "windows_vm" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
 }
-``
+
