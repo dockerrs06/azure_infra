@@ -1,4 +1,3 @@
-
 variable "cluster_name" {
   type = string
 }
@@ -16,18 +15,15 @@ variable "dns_prefix" {
 }
 
 variable "node_pool_name" {
-  type    = string
-  default = "default"
+  type = string
 }
 
 variable "node_count" {
-  type    = number
-  default = 1
+  type = number
 }
 
 variable "vm_size" {
-  type    = string
-  default = "Standard_D2_v2"
+  type = string
 }
 
 variable "tags" {
