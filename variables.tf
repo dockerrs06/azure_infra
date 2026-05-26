@@ -1,30 +1,37 @@
-
 variable "env" {
-  type = string
+  description = "Environment name (dev, test, prod)"
+  type        = string
 }
 
 variable "location" {
-  type = string
+  description = "Azure region"
+  type        = string
 }
 
 variable "vm_name" {
-  type = string
+  description = "Virtual machine name"
+  type        = string
 }
 
 variable "admin_username" {
-  type = string
+  description = "Admin username for VM"
+  type        = string
 }
 
 variable "admin_password" {
-  type      = string
-  sensitive = true
+  description = "Admin password for VM"
+  type        = string
+  sensitive   = true
 }
 
-# ✅ OPTIONAL: keep only if you use later
+# Optional (only if used later)
 variable "vm_list" {
-  type    = list(string)
-  default = []
+  description = "List of VM names (optional)"
+  type        = list(string)
+  default     = []
 }
+
+# AKS variables
 variable "aks_node_count" {
   description = "AKS node count"
   type        = number
@@ -36,3 +43,4 @@ variable "aks_vm_size" {
   type        = string
   default     = "Standard_D2_v2"
 }
+``
