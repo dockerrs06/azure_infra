@@ -1,5 +1,5 @@
 variable "env" {
-  description = "Environment name (dev, test, prod)"
+  description = "Environment name"
   type        = string
 }
 
@@ -8,39 +8,49 @@ variable "location" {
   type        = string
 }
 
+# =========================
+# VM VARIABLES
+# =========================
 variable "vm_name" {
-  description = "Virtual machine name"
   type        = string
+  default     = ""
 }
 
 variable "admin_username" {
-  description = "Admin username for VM"
   type        = string
+  default     = ""
 }
 
 variable "admin_password" {
-  description = "Admin password for VM"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
-# Optional (only if used later)
-variable "vm_list" {
-  description = "List of VM names (optional)"
-  type        = list(string)
-  default     = []
-}
-
-# AKS variables
+# =========================
+# AKS VARIABLES
+# =========================
 variable "aks_node_count" {
-  description = "AKS node count"
-  type        = number
-  default     = 1
+  type    = number
+  default = 1
 }
 
 variable "aks_vm_size" {
-  description = "AKS VM size"
-  type        = string
-  default     = "Standard_D2_v2"
+  type    = string
+  default = "Standard_D2_v2"
 }
-``
+
+# =========================
+# FEATURE FLAGS ✅
+# =========================
+variable "enable_vm" {
+  description = "Enable VM deployment"
+  type        = bool
+  default     = false
+}
+
+variable "enable_aks" {
+  description = "Enable AKS deployment"
+  type        = bool
+  default     = true
+}
