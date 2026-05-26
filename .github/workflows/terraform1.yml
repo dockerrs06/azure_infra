@@ -6,7 +6,9 @@ on:
       - main
       - develop
       - relese
+
   pull_request:
+
   workflow_dispatch:
     inputs:
       environment:
@@ -17,6 +19,7 @@ on:
           - dev
           - itg
           - prod
+
       action:
         description: "Select Action"
         required: true
@@ -25,6 +28,16 @@ on:
           - plan
           - apply
           - destroy
+
+      enable_vm:
+        description: "Deploy VM (true/false)"
+        required: false
+        default: "false"
+
+      enable_aks:
+        description: "Deploy AKS (true/false)"
+        required: false
+        default: "true"
 
 permissions:
   contents: read
@@ -54,14 +67,18 @@ jobs:
           terraform_version: 1.6.6
           terraform_wrapper: false
 
-      - name: Verify Terraform Version
+      - name: Terraform Version
         run: terraform version
 
-      # ✅ Environment Mapping FIXED
+# =========================
+# Environment Mapping
+# =========================
       - name: Set Environment Config
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             ENV="${{ github.event.inputs.environment }}"
+            ENABLE_VM="${{ github.event.inputs.enable_vm }}"
+            ENABLE_AKS="${{ github.event.inputs.enable_aks }}"
           else
             BRANCH="${GITHUB_REF##*/}"
 
@@ -74,9 +91,14 @@ jobs:
             else
               ENV="dev"
             fi
+
+            ENABLE_VM="false"
+            ENABLE_AKS="true"
           fi
 
-          echo "Using ENV=$ENV"
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "ENABLE_VM=$ENABLE_VM" >> $GITHUB_ENV
+          echo "ENABLE_AKS=$ENABLE_AKS" >> $GITHUB_ENV
 
           case "$ENV" in
             dev)
@@ -101,12 +123,19 @@ jobs:
 
           echo "CONTAINER=tfstate" >> $GITHUB_ENV
 
+# =========================
+# Debug
+# =========================
       - name: Debug Variables
         run: |
           echo "ENV=$ENV"
-          echo "BACKEND_RG=$BACKEND_RG"
-          echo "BACKEND_SA=$BACKEND_SA"
+          echo "ENABLE_VM=$ENABLE_VM"
+          echo "ENABLE_AKS=$ENABLE_AKS"
+          echo "TFVARS=$TFVARS"
 
+# =========================
+# Terraform Init
+# =========================
       - name: Terraform Init
         run: |
           terraform init -input=false \
@@ -116,36 +145,45 @@ jobs:
             -backend-config="key=$TFSTATE" \
             -backend-config="use_azuread_auth=true"
 
-      # ✅ FIXED indentation
       - name: Terraform Format
         run: terraform fmt -check
 
       - name: Terraform Validate
         run: terraform validate
 
-      # ✅ PLAN (auto + manual)
+# =========================
+# Terraform Plan
+# =========================
       - name: Terraform Plan
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'plan'
         run: |
           terraform plan \
             -var-file="$TFVARS" \
+            -var="enable_vm=$ENABLE_VM" \
+            -var="enable_aks=$ENABLE_AKS" \
             -out=tfplan \
             -input=false
 
-      # ✅ APPLY
+# =========================
+# Terraform Apply
+# =========================
       - name: Terraform Apply
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
         run: |
-          terraform apply \
+          terraform apply -auto-approve \
             -var-file="$TFVARS" \
-            -auto-approve \
+            -var="enable_vm=$ENABLE_VM" \
+            -var="enable_aks=$ENABLE_AKS" \
             -input=false
 
-      # ✅ DESTROY
+# =========================
+# Terraform Destroy
+# =========================
       - name: Terraform Destroy
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
         run: |
-          terraform destroy \
+          terraform destroy -auto-approve \
             -var-file="$TFVARS" \
-            -auto-approve \
+            -var="enable_vm=$ENABLE_VM" \
+            -var="enable_aks=$ENABLE_AKS" \
             -input=false
