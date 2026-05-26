@@ -12,19 +12,19 @@ variable "location" {
 # VM VARIABLES
 # =========================
 variable "vm_name" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "admin_username" {
-  type        = string
-  default     = ""
+  type    = string
+  default = ""
 }
 
 variable "admin_password" {
-  type        = string
-  sensitive   = true
-  default     = ""
+  type      = string
+  sensitive = true
+  default   = ""
 }
 
 # =========================
@@ -41,7 +41,7 @@ variable "aks_vm_size" {
 }
 
 # =========================
-# FEATURE FLAGS ✅
+# FEATURE FLAGS
 # =========================
 variable "enable_vm" {
   description = "Enable VM deployment"
