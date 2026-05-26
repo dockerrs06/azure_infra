@@ -29,15 +29,15 @@ on:
           - apply
           - destroy
 
-      enable_vm:
-        description: "Deploy VM (true/false)"
-        required: false
-        default: "false"
-
-      enable_aks:
-        description: "Deploy AKS (true/false)"
-        required: false
-        default: "true"
+      resource:
+        description: "Select Resource"
+        required: true
+        type: choice
+        options:
+          - vm
+          - aks
+          - adf
+          - all
 
 permissions:
   contents: read
@@ -53,14 +53,24 @@ jobs:
       ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_CREDENTIALS).tenantId }}
 
     steps:
+
+# =========================
+# Checkout
+# =========================
       - name: Checkout Code
         uses: actions/checkout@v4
 
+# =========================
+# Azure Login
+# =========================
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+# =========================
+# Terraform Setup
+# =========================
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -71,34 +81,15 @@ jobs:
         run: terraform version
 
 # =========================
-# Environment Mapping
+# Environment Config
 # =========================
       - name: Set Environment Config
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            ENV="${{ github.event.inputs.environment }}"
-            ENABLE_VM="${{ github.event.inputs.enable_vm }}"
-            ENABLE_AKS="${{ github.event.inputs.enable_aks }}"
-          else
-            BRANCH="${GITHUB_REF##*/}"
-
-            if [ "$BRANCH" = "main" ]; then
-              ENV="dev"
-            elif [ "$BRANCH" = "develop" ]; then
-              ENV="itg"
-            elif [ "$BRANCH" = "relese" ]; then
-              ENV="prod"
-            else
-              ENV="dev"
-            fi
-
-            ENABLE_VM="false"
-            ENABLE_AKS="true"
-          fi
+          ENV="${{ github.event.inputs.environment }}"
+          RESOURCE="${{ github.event.inputs.resource }}"
 
           echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "ENABLE_VM=$ENABLE_VM" >> $GITHUB_ENV
-          echo "ENABLE_AKS=$ENABLE_AKS" >> $GITHUB_ENV
+          echo "RESOURCE=$RESOURCE" >> $GITHUB_ENV
 
           case "$ENV" in
             dev)
@@ -129,8 +120,7 @@ jobs:
       - name: Debug Variables
         run: |
           echo "ENV=$ENV"
-          echo "ENABLE_VM=$ENABLE_VM"
-          echo "ENABLE_AKS=$ENABLE_AKS"
+          echo "RESOURCE=$RESOURCE"
           echo "TFVARS=$TFVARS"
 
 # =========================
@@ -152,38 +142,49 @@ jobs:
         run: terraform validate
 
 # =========================
+# Set TARGET dynamically
+# =========================
+      - name: Set Target Resource
+        run: |
+          if [ "$RESOURCE" = "vm" ]; then
+            echo "TARGET=-target=module.windows_vm" >> $GITHUB_ENV
+          elif [ "$RESOURCE" = "aks" ]; then
+            echo "TARGET=-target=module.aks" >> $GITHUB_ENV
+          elif [ "$RESOURCE" = "adf" ]; then
+            echo "TARGET=-target=module.adf" >> $GITHUB_ENV
+          else
+            echo "TARGET=" >> $GITHUB_ENV
+          fi
+
+# =========================
 # Terraform Plan
 # =========================
       - name: Terraform Plan
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'plan'
+        if: github.event.inputs.action == 'plan'
         run: |
           terraform plan \
+            $TARGET \
             -var-file="$TFVARS" \
-            -var="enable_vm=$ENABLE_VM" \
-            -var="enable_aks=$ENABLE_AKS" \
-            -out=tfplan \
             -input=false
 
 # =========================
 # Terraform Apply
 # =========================
       - name: Terraform Apply
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+        if: github.event.inputs.action == 'apply'
         run: |
           terraform apply -auto-approve \
+            $TARGET \
             -var-file="$TFVARS" \
-            -var="enable_vm=$ENABLE_VM" \
-            -var="enable_aks=$ENABLE_AKS" \
             -input=false
 
 # =========================
 # Terraform Destroy
 # =========================
       - name: Terraform Destroy
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        if: github.event.inputs.action == 'destroy'
         run: |
           terraform destroy -auto-approve \
+            $TARGET \
             -var-file="$TFVARS" \
-            -var="enable_vm=$ENABLE_VM" \
-            -var="enable_aks=$ENABLE_AKS" \
             -input=false
